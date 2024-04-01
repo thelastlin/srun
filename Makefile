@@ -5,7 +5,7 @@ STRIP=llvm-strip -s
 CARGO_BUILD=cargo build -Z build-std=std,panic_abort -Z build-std-features=panic_immediate_abort --release --target
 CROSS_BUILD=cross build -Z build-std=std,panic_abort -Z build-std-features=panic_immediate_abort --release --target
 UPX=-upx --best --lzma
-TLS=FALSE
+TLS=TRUE
 
 CROSS_TARGET_LIST = \
 	x86_64-unknown-linux-musl \
