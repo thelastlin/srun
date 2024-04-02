@@ -1,6 +1,10 @@
 use serde::Deserialize;
 
-#[derive(Debug, Default, Deserialize, Clone)]
+#[cfg(not(debug_assertions))]
+use std::fmt;
+
+#[derive(Default, Deserialize, Clone)]
+#[cfg_attr(debug_assertions, derive(Debug))]
 pub struct User {
     pub username: String,
     pub password: String,
@@ -25,5 +29,22 @@ impl User {
             ip: None,
             if_name: Some(if_name),
         }
+    }
+}
+
+#[cfg(not(debug_assertions))]
+impl fmt::Debug for User {
+    fn fmt(&self, fmt: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let temp = format!("__MASKED__,length: {}", self.password.len());
+        let password_shadow = match self.password.is_empty() {
+            true => &self.password,
+            false => &temp
+        };
+        fmt.debug_struct("User")
+            .field("username", &self.username)
+            .field("password", &password_shadow)
+            .field("ip", &self.ip)
+            .field("if_name", &self.if_name)
+            .finish()
     }
 }
