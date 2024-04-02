@@ -6,6 +6,7 @@ use crate::{
 use hmac::{Hmac, Mac};
 use md5::Md5;
 use quick_error::quick_error;
+use regex::Regex;
 use serde::Deserialize;
 use sha1::{Digest, Sha1};
 use std::{
@@ -14,6 +15,9 @@ use std::{
     thread,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
+
+#[cfg(test)]
+use crate::constrains;
 
 const PATH_GET_CHALLENGE: &str = "/cgi-bin/get_challenge";
 const PATH_PORTAL: &str = "/cgi-bin/srun_portal";
@@ -351,6 +355,26 @@ impl SrunClient {
         println!("{:#?}", result);
         Ok(())
     }
+
+    pub fn probe_acid(&mut self) -> Result<i32> {
+        let probe_domain = match option_env!("ACID_PROBE_DOMAIN") {
+            Some(d) => d,
+            None => "http://www.example.org",
+        };
+        let req = self
+            .get_http_client()?
+            .get(probe_domain)
+            .timeout(Duration::from_secs(2));
+        let resp = req.send()?;
+        let resp_content = resp.text()?;
+        let acid_parser = Regex::new(r"/index_([0-9]+)\.html")?;
+        let acid = acid_parser
+            .captures(&resp_content)
+            .ok_or("regex nothing found")?[1]
+            .parse::<i32>()?;
+
+        return Ok(acid);
+    }
 }
 
 #[allow(dead_code)]
@@ -414,4 +438,18 @@ fn unix_second() -> u64 {
         .duration_since(UNIX_EPOCH)
         .expect("time went backwards")
         .as_secs()
+}
+
+#[test]
+fn test_probe_acid() {
+    let user = User {
+        username: "test_user".to_string(),
+        password: "test_password".to_string(),
+        ip: Some("".to_string()),
+        if_name: None,
+    };
+    let mut client =
+        SrunClient::new_from_user(constrains::AUTH_SERVER_DEFAULT, user).set_detect_ip(true);
+    let probe_result = client.probe_acid();
+    println!("probe: {:#?}", probe_result);
 }

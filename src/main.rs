@@ -139,6 +139,11 @@ fn config_login(matches: Matches) {
                 }
                 if let Some(acid) = config.acid {
                     client.set_acid(acid);
+                } else if let Ok(probed_acid) = client.probe_acid() {
+                    println!("use probed acid: {}", probed_acid);
+                    client.set_acid(probed_acid);
+                } else {
+                    println!("unable to probe acid, will use default acid");
                 }
                 if let Some(ref os) = config.os {
                     client.set_os(os);
@@ -226,6 +231,11 @@ fn single_login(matches: Matches) {
 
     if let Some(acid) = matches.opt_str("acid") {
         client.set_acid(acid.parse().unwrap());
+    } else if let Ok(probed_acid) = client.probe_acid() {
+        println!("use probed acid: {}", probed_acid);
+        client.set_acid(probed_acid);
+    } else {
+        println!("unable to probe acid, will use default acid");
     }
 
     if let Some(ref os) = matches.opt_str("os") {
@@ -285,6 +295,8 @@ fn logout(matches: Matches) {
 
     if let Some(acid) = matches.opt_str("acid") {
         client.set_acid(acid.parse().unwrap());
+    } else {
+        println!("unable to probe acid, will use default acid");
     }
 
     if let Err(e) = client.logout() {
