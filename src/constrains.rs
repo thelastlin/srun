@@ -1,0 +1,1 @@
+pub const AUTH_SERVER_DEFAULT: &str = env!("AUTH_SERVER");

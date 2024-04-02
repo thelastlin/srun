@@ -893,6 +893,7 @@ dependencies = [
  "serde_json",
  "sha-1",
  "socket2",
+ "url",
 ]
 
 [[package]]

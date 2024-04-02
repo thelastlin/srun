@@ -3,4 +3,5 @@ passthrough = [
     "RUST_BACKTRACE",
     "RUST_LOG",
     "AUTH_SERVER_IP",
+    "AUTH_SERVER_TLS",
 ]

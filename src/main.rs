@@ -1,6 +1,7 @@
 use getopts::{Matches, Options};
 use srun::{read_config_from_file, select_ip, SrunClient, User};
 use std::env;
+use srun::constrains;
 
 fn print_usage(opts: Option<&Options>) {
     let brief = "Usage: srun ACTION [options]\n\nActions: login | logout".to_string();
@@ -108,7 +109,7 @@ fn config_login(matches: Matches) {
                 .clone()
                 .unwrap_or_else(|| match matches.opt_str("s") {
                     Some(u) => u,
-                    None => format!("http://{}", env!("AUTH_SERVER_IP")),
+                    None => String::from(constrains::AUTH_SERVER_DEFAULT),
                 });
             for user in config_i {
                 println!("login user: {:#?}", user);
@@ -166,7 +167,7 @@ fn config_login(matches: Matches) {
 fn single_login(matches: Matches) {
     let auth_server = match matches.opt_str("s") {
         Some(u) => u,
-        None => format!("http://{}", env!("AUTH_SERVER_IP")),
+        None => String::from(constrains::AUTH_SERVER_DEFAULT),
     };
     let username = match matches.opt_str("u") {
         Some(u) => u,
@@ -251,7 +252,7 @@ fn single_login(matches: Matches) {
 fn logout(matches: Matches) {
     let auth_server = match matches.opt_str("s") {
         Some(u) => u,
-        None => format!("http://{}", env!("AUTH_SERVER_IP")),
+        None => String::from(constrains::AUTH_SERVER_DEFAULT),
     };
     let username = match matches.opt_str("u") {
         Some(u) => u,
