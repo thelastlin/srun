@@ -38,8 +38,8 @@ pub struct SrunClient {
 
     acid: i32,
     double_stack: i32,
-    os: String,
-    name: String,
+    os: Option<String>,
+    name: Option<String>,
 
     token: String,
     n: i32,
@@ -68,8 +68,8 @@ impl SrunClient {
             acid: 12,
             n: 200,
             utype: 1,
-            os: "Windows 10".to_string(),
-            name: "Windows".to_string(),
+            os: None,
+            name: None,
             retry_delay: 300,
             retry_times: 10,
             ..Default::default()
@@ -113,11 +113,11 @@ impl SrunClient {
     }
 
     pub fn set_os(&mut self, os: &str) {
-        self.os = os.to_owned();
+        self.os = Some(os.to_owned());
     }
 
     pub fn set_name(&mut self, name: &str) {
-        self.name = name.to_owned();
+        self.name = Some(name.to_owned());
     }
 
     pub fn set_retry_delay(&mut self, d: u32) {
@@ -277,8 +277,16 @@ impl SrunClient {
             let double_stack = self.double_stack.to_string();
             let time = self.time.to_string();
 
-            let query = vec![
-                ("callback", "sdu"),
+            let optional_query = vec![("os", &self.os), ("name", &self.name)]
+                .into_iter()
+                .filter_map(|(k, v)| match v {
+                    Some(v) => Some((k, v.as_str())),
+                    None => None,
+                })
+                .collect::<Vec<_>>();
+
+            let required_query = vec![
+                ("callback", CALLBACK_NAME),
                 ("action", "login"),
                 ("username", &self.username),
                 ("password", &password),
@@ -286,13 +294,17 @@ impl SrunClient {
                 ("ac_id", &ac_id),
                 ("n", &n),
                 ("type", &utype),
-                ("os", &self.os),
-                ("name", &self.name),
                 ("double_stack", &double_stack),
                 ("info", &param_i),
                 ("chksum", &check_sum),
                 ("_", &time),
             ];
+
+            let query = required_query
+                .into_iter()
+                .chain(optional_query.into_iter())
+                .collect::<Vec<_>>();
+            println!("login request: {:#?}", query);
 
             result = {
                 #[cfg(feature = "reqwest")]
